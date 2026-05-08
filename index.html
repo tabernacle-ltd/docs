@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabernacle Paper — Faith-Focused Document Editor</title>
+    <meta name="description" content="A Google Docs alternative infused with daily Scripture. Write, collaborate, and reveal a verse when you need it.">
+    <style>
+        :root {
+            --bg: #faf9f6;
+            --bg-card: #ffffff;
+            --text: #1e1e1e;
+            --text-secondary: #4a4a4a;
+            --text-muted: #7a7a7a;
+            --border: #e0e0e0;
+            --border-light: #eeeeee;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 2px 8px rgba(0,0,0,0.06);
+            --shadow-lg: 0 4px 16px rgba(0,0,0,0.08);
+            --gold: #c9a84c;
+            --gold-light: #e0c878;
+            --gold-pale: #f5ecd7;
+            --radius-sm: 8px;
+            --radius: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --transition: 0.2s ease;
+            --font-display: 'Georgia', 'Times New Roman', serif;
+            --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+            --editor-font: 'Inter', system-ui, -apple-system, sans-serif;
+            --editor-size: 16px;
+        }
+        body.dark {
+            --bg: #0d1117;
+            --bg-card: #161b22;
+            --text: #e6edf3;
+            --text-secondary: #b1bac4;
+            --text-muted: #8b949e;
+            --border: #30363d;
+            --border-light: #21262d;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+            --shadow-md: 0 2px 8px rgba(0,0,0,0.4);
+            --shadow-lg: 0 4px 16px rgba(0,0,0,0.5);
+            --gold-pale: #2c2410;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s, color 0.3s;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .navbar {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 0 1.5rem;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav-left,
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .logo {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--gold) 0%, #b8932e 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+            font-family: var(--font-display);
+            font-size: 1rem;
+        }
+        .app-title {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.3px;
+        }
+        .save-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+        .save-status .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4caf84;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 0.5rem 1rem;
+            border-radius: 24px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            letter-spacing: 0.02em;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: 1.5px solid transparent;
+            background: transparent;
+            color: var(--text);
+            text-decoration: none;
+        }
+        .btn-outline { border-color: var(--border); }
+        .btn-outline:hover { background: var(--border-light); transform: translateY(-1px); }
+        .btn-primary {
+            background: var(--gold);
+            color: #fff;
+            border: none;
+            box-shadow: 0 2px 8px rgba(201,168,76,0.3);
+        }
+        .btn-primary:hover { background: #b8932e; transform: translateY(-1px); }
+        .icon-btn {
+            background: transparent;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 50%;
+            transition: background 0.2s;
+            color: var(--text);
+            display: flex;
+        }
+        .icon-btn:hover { background: var(--border-light); }
+
+        .main-container {
+            flex: 1;
+            max-width: 880px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .verse-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.2rem 1.4rem;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .verse-icon-btn {
+            font-size: 1.8rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--gold);
+            transition: transform 0.2s;
+        }
+        .verse-icon-btn:hover { transform: scale(1.1); }
+        .verse-content { flex: 1; display: flex; flex-direction: column; gap: 0.3rem; }
+        .verse-prompt { color: var(--text-muted); font-size: 0.9rem; }
+        .verse-text {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            color: var(--text);
+            font-style: italic;
+            line-height: 1.6;
+        }
+        .verse-reference {
+            font-size: 0.85rem;
+            color: var(--gold);
+            font-weight: 600;
+            letter-spacing: 0.03em;
+        }
+        .verse-hidden { display: none; }
+
+        .doc-title-input {
+            width: 100%;
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text);
+            border: none;
+            border-bottom: 2px solid transparent;
+            background: transparent;
+            padding: 0.4rem 0;
+            outline: none;
+            transition: border-color 0.2s;
+            letter-spacing: -0.02em;
+        }
+        .doc-title-input:focus { border-bottom-color: var(--gold); }
+        .doc-title-input::placeholder { color: var(--text-muted); opacity: 0.6; font-style: italic; }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .toolbar button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 32px;
+            min-width: 32px;
+            padding: 0 0.5rem;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .toolbar button:hover { background: var(--border-light); color: var(--text); border-color: var(--border); }
+        .toolbar button.active {
+            background: var(--gold-pale);
+            border-color: var(--gold);
+            color: var(--gold);
+            font-weight: 600;
+        }
+        .toolbar .separator {
+            width: 1px;
+            background: var(--border);
+            margin: 0 0.2rem;
+            align-self: stretch;
+        }
+        /* ─── Fixed select styles for dark mode ─── */
+        .toolbar select {
+            height: 32px;
+            padding: 0 1.8rem 0 0.6rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background-color: var(--bg);
+            color: var(--text);
+            font-size: 0.8rem;
+            cursor: pointer;
+            outline: none;
+            font-weight: 500;
+            transition: all 0.15s;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='currentColor' fill='none' stroke-width='2'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 12px 8px;
+        }
+        .toolbar select:hover {
+            border-color: var(--gold);
+            color: var(--text);
+        }
+        .toolbar select:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 2px rgba(201,168,76,0.15);
+        }
+
+        .editor-wrapper {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+        .editor {
+            padding: 2rem;
+            min-height: 55vh;
+            outline: none;
+            font-family: var(--editor-font);
+            font-size: var(--editor-size);
+            line-height: 1.8;
+            color: var(--text);
+            word-break: break-word;
+            transition: background 0.3s, font-family 0.2s, font-size 0.2s;
+        }
+        .editor:empty::before {
+            content: attr(data-placeholder);
+            color: var(--text-muted);
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .editor h1,
+        .editor h2,
+        .editor h3 {
+            font-family: var(--font-display);
+            color: var(--text);
+            margin: 1.2rem 0 0.4rem;
+        }
+        .editor h1 { font-size: 2rem; }
+        .editor h2 { font-size: 1.5rem; }
+        .editor h3 { font-size: 1.25rem; }
+        .editor p { margin: 0.6rem 0; }
+        .editor ul,
+        .editor ol { padding-left: 2rem; margin: 0.6rem 0; }
+        .editor li { margin-bottom: 0.3rem; }
+        .editor blockquote {
+            font-style: italic;
+            border-left: 3px solid var(--gold);
+            padding-left: 1rem;
+            color: var(--text-secondary);
+            margin: 1rem 0;
+        }
+
+        /* settings modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+        }
+        .modal h2 { font-family: var(--font-display); color: var(--text); margin-bottom: 1.5rem; font-size: 1.5rem; }
+        .setting-row { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1.2rem; }
+        .setting-row label { font-weight: 600; font-size: 0.85rem; color: var(--text-secondary); }
+        .setting-row select,
+        .setting-row input {
+            padding: 0.6rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .modal-actions { display: flex; gap: 0.8rem; justify-content: flex-end; margin-top: 1.5rem; }
+
+        .app-footer {
+            text-align: center;
+            padding: 1.2rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            margin-top: auto;
+        }
+        .app-footer span { color: var(--gold); font-weight: 600; }
+
+        @media (max-width: 680px) {
+            .navbar { padding: 0 1rem; height: 54px; }
+            .app-title { font-size: 1.1rem; }
+            .main-container { padding: 1rem 0.8rem; gap: 1rem; }
+            .doc-title-input { font-size: 1.5rem; }
+            .editor { padding: 1.2rem; font-size: var(--editor-size); }
+            .toolbar button { height: 28px; min-width: 28px; font-size: 0.75rem; padding: 0 0.3rem; }
+            .toolbar select { height: 28px; font-size: 0.7rem; }
+            .verse-card { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="logo">T</div>
+            <span class="app-title">Tabernacle Paper</span>
+        </div>
+        <div class="nav-right">
+            <div class="save-status" id="saveStatus">
+                <span class="dot"></span> <span id="saveText">All changes saved</span>
+            </div>
+            <button class="icon-btn" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
+            <button class="icon-btn" id="settingsBtn" aria-label="Settings">⚙️</button>
+            <button class="btn btn-outline" id="newDocBtn">+ New</button>
+            <button class="btn btn-primary" id="saveNowBtn">Save Now</button>
+        </div>
+    </nav>
+
+    <!-- settings modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal">
+            <h2 id="settingsTitle">Settings</h2>
+            <div class="setting-row">
+                <label id="langLabel">Language</label>
+                <select id="langSelect">
+                    <option value="en-US">English (US)</option>
+                    <option value="en-GB">English (UK)</option>
+                    <option value="en-AU">English (AU)</option>
+                    <option value="sv">Swedish</option>
+                    <option value="fi">Finnish</option>
+                    <option value="es">Spanish</option>
+                    <option value="pt">Portuguese</option>
+                    <option value="zh-TW">Mandarin (Taiwan)</option>
+                    <option value="ru">Russian</option>
+                </select>
+            </div>
+            <div class="setting-row">
+                <label id="fontLabel">Default Font Family</label>
+                <select id="fontSelect">
+                    <option value="Inter, system-ui, sans-serif">Inter (Sans-serif)</option>
+                    <option value="Georgia, 'Times New Roman', serif">Georgia (Serif)</option>
+                    <option value="Arial, sans-serif">Arial</option>
+                    <option value="'Courier New', monospace">Courier New (Monospace)</option>
+                    <option value="'Segoe UI', system-ui, sans-serif">Segoe UI</option>
+                </select>
+            </div>
+            <div class="setting-row">
+                <label id="sizeLabel">Default Font Size (px)</label>
+                <input type="number" id="fontSizeInput" min="12" max="36" value="16" step="1">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-outline" id="closeSettingsBtn">Cancel</button>
+                <button class="btn btn-primary" id="applySettingsBtn">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- verse card -->
+        <div class="verse-card" id="verseCard">
+            <button class="verse-icon-btn" id="revealVerseBtn" title="Reveal today's verse">📖</button>
+            <div class="verse-content">
+                <div id="versePrompt" class="verse-prompt">Need encouragement? Click the book icon to reveal today's Scripture.</div>
+                <div id="verseDisplay" class="verse-hidden">
+                    <div class="verse-text" id="verseText"></div>
+                    <div class="verse-reference" id="verseRef"></div>
+                </div>
+            </div>
+        </div>
+
+        <input type="text" class="doc-title-input" id="docTitle" placeholder="Untitled Document" maxlength="120">
+
+        <!-- toolbar with font & font-size selects -->
+        <div class="toolbar" id="toolbar">
+            <select id="fontFamilySelect" title="Font Family" style="min-width:110px;">
+                <option value="Inter, system-ui, sans-serif">Inter</option>
+                <option value="Georgia, 'Times New Roman', serif">Georgia</option>
+                <option value="Arial, sans-serif">Arial</option>
+                <option value="'Courier New', monospace">Courier New</option>
+                <option value="'Segoe UI', system-ui, sans-serif">Segoe UI</option>
+                <option value="'Times New Roman', serif">Times New Roman</option>
+            </select>
+            <select id="fontSizeSelect" title="Font Size" style="min-width:60px;">
+                <option value="12">12</option>
+                <option value="14">14</option>
+                <option value="16" selected>16</option>
+                <option value="18">18</option>
+                <option value="20">20</option>
+                <option value="24">24</option>
+                <option value="28">28</option>
+                <option value="32">32</option>
+                <option value="36">36</option>
+            </select>
+            <span class="separator"></span>
+            <button data-command="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+            <button data-command="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+            <button data-command="underline" title="Underline (Ctrl+U)"><u>U</u></button>
+            <span class="separator"></span>
+            <button data-command="formatBlock" data-value="h1" title="Heading 1">H1</button>
+            <button data-command="formatBlock" data-value="h2" title="Heading 2">H2</button>
+            <button data-command="formatBlock" data-value="h3" title="Heading 3">H3</button>
+            <span class="separator"></span>
+            <button data-command="insertUnorderedList" title="Bullet List">• List</button>
+            <button data-command="insertOrderedList" title="Numbered List">1. List</button>
+            <span class="separator"></span>
+            <button id="insertVerseBtn" title="Insert today's verse">✝ Insert Verse</button>
+        </div>
+
+        <div class="editor-wrapper">
+            <div class="editor" id="editor" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Start writing your document..."></div>
+        </div>
+    </div>
+
+    <footer class="app-footer">
+        <span>Tabernacle Paper</span> — <span id="footerText">A faith-focused document editor. Built with AI, guided by faith.</span>
+    </footer>
+
+    <script>
+        (function() {
+            const translations = {
+                'en-US': { saveStatusSaved: 'All changes saved', saveStatusUnsaved: 'Unsaved changes', newBtn: '+ New', saveNowBtn: 'Save Now', settingsTitle: 'Settings', langLabel: 'Language', fontLabel: 'Default Font Family', sizeLabel: 'Default Font Size (px)', cancel: 'Cancel', apply: 'Apply', versePrompt: 'Need encouragement? Click the book icon to reveal today\'s Scripture.', insertVerse: '✝ Insert Verse', placeholder: 'Start writing your document...', untitled: 'Untitled Document', footer: 'A faith-focused document editor. Built with AI, guided by faith.' },
+                'en-GB': { saveStatusSaved: 'All changes saved', saveStatusUnsaved: 'Unsaved changes', newBtn: '+ New', saveNowBtn: 'Save Now', settingsTitle: 'Settings', langLabel: 'Language', fontLabel: 'Default Font Family', sizeLabel: 'Default Font Size (px)', cancel: 'Cancel', apply: 'Apply', versePrompt: 'Need encouragement? Click the book icon to reveal today\'s Scripture.', insertVerse: '✝ Insert Verse', placeholder: 'Start writing your document...', untitled: 'Untitled Document', footer: 'A faith-focused document editor. Built with AI, guided by faith.' },
+                'en-AU': { saveStatusSaved: 'All changes saved', saveStatusUnsaved: 'Unsaved changes', newBtn: '+ New', saveNowBtn: 'Save Now', settingsTitle: 'Settings', langLabel: 'Language', fontLabel: 'Default Font Family', sizeLabel: 'Default Font Size (px)', cancel: 'Cancel', apply: 'Apply', versePrompt: 'Need a pick-me-up? Click the book icon to see today\'s Scripture.', insertVerse: '✝ Insert Verse', placeholder: 'Start writing your document...', untitled: 'Untitled Document', footer: 'A faith-focused document editor. Built with AI, guided by faith.' },
+                'sv': { saveStatusSaved: 'Alla ändringar sparade', saveStatusUnsaved: 'Osparade ändringar', newBtn: '+ Ny', saveNowBtn: 'Spara nu', settingsTitle: 'Inställningar', langLabel: 'Språk', fontLabel: 'Standardtypsnitt', sizeLabel: 'Standard teckenstorlek (px)', cancel: 'Avbryt', apply: 'Verkställ', versePrompt: 'Behöver du uppmuntran? Klicka på bokikonen för att visa dagens bibelord.', insertVerse: '✝ Infoga vers', placeholder: 'Börja skriva ditt dokument...', untitled: 'Namnlöst dokument', footer: 'En trosfokuserad dokumentredigerare. Byggd med AI, ledd av tro.' },
+                'fi': { saveStatusSaved: 'Kaikki muutokset tallennettu', saveStatusUnsaved: 'Tallentamattomia muutoksia', newBtn: '+ Uusi', saveNowBtn: 'Tallenna nyt', settingsTitle: 'Asetukset', langLabel: 'Kieli', fontLabel: 'Oletusfontti', sizeLabel: 'Oletusfonttikoko (px)', cancel: 'Peruuta', apply: 'Käytä', versePrompt: 'Tarvitsetko rohkaisua? Napsauta kirjakuvaketta nähdäksesi päivän raamatunjakeen.', insertVerse: '✝ Lisää jae', placeholder: 'Aloita kirjoittaminen...', untitled: 'Nimetön asiakirja', footer: 'Uskoon keskittyvä asiakirjaeditori. Rakennettu tekoälyllä, uskon ohjaamana.' },
+                'es': { saveStatusSaved: 'Todos los cambios guardados', saveStatusUnsaved: 'Cambios sin guardar', newBtn: '+ Nuevo', saveNowBtn: 'Guardar ahora', settingsTitle: 'Configuración', langLabel: 'Idioma', fontLabel: 'Fuente predeterminada', sizeLabel: 'Tamaño de fuente predeterminado (px)', cancel: 'Cancelar', apply: 'Aplicar', versePrompt: '¿Necesitas ánimo? Haz clic en el ícono del libro para ver el versículo de hoy.', insertVerse: '✝ Insertar versículo', placeholder: 'Empieza a escribir tu documento...', untitled: 'Documento sin título', footer: 'Un editor de documentos centrado en la fe. Construido con IA, guiado por la fe.' },
+                'pt': { saveStatusSaved: 'Todas as alterações salvas', saveStatusUnsaved: 'Alterações não salvas', newBtn: '+ Novo', saveNowBtn: 'Salvar agora', settingsTitle: 'Configurações', langLabel: 'Idioma', fontLabel: 'Fonte padrão', sizeLabel: 'Tamanho de fonte padrão (px)', cancel: 'Cancelar', apply: 'Aplicar', versePrompt: 'Precisa de encorajamento? Clique no ícone do livro para ver o versículo de hoje.', insertVerse: '✝ Inserir versículo', placeholder: 'Comece a escrever seu documento...', untitled: 'Documento sem título', footer: 'Um editor de documentos focado na fé. Construído com IA, guiado pela fé.' },
+                'zh-TW': { saveStatusSaved: '所有變更已儲存', saveStatusUnsaved: '未儲存變更', newBtn: '+ 新增', saveNowBtn: '立即儲存', settingsTitle: '設定', langLabel: '語言', fontLabel: '預設字型', sizeLabel: '預設字型大小 (px)', cancel: '取消', apply: '套用', versePrompt: '需要鼓勵嗎？按一下書本圖示顯示今日經文。', insertVerse: '✝ 插入經文', placeholder: '開始撰寫您的文件...', untitled: '未命名文件', footer: '以信仰為中心的文件編輯器。以AI打造，由信仰引導。' },
+                'ru': { saveStatusSaved: 'Все изменения сохранены', saveStatusUnsaved: 'Несохранённые изменения', newBtn: '+ Новый', saveNowBtn: 'Сохранить сейчас', settingsTitle: 'Настройки', langLabel: 'Язык', fontLabel: 'Шрифт по умолчанию', sizeLabel: 'Размер шрифта по умолчанию (px)', cancel: 'Отмена', apply: 'Применить', versePrompt: 'Нужно ободрение? Нажмите на иконку книги, чтобы увидеть сегодняшний стих.', insertVerse: '✝ Вставить стих', placeholder: 'Начните писать документ...', untitled: 'Безымянный документ', footer: 'Редактор документов, ориентированный на веру. Создан с ИИ, ведомый верой.' }
+            };
+
+            const editor = document.getElementById('editor');
+            const docTitle = document.getElementById('docTitle');
+            const saveText = document.getElementById('saveText');
+            const versePrompt = document.getElementById('versePrompt');
+            const verseText = document.getElementById('verseText');
+            const verseRef = document.getElementById('verseRef');
+            const verseDisplay = document.getElementById('verseDisplay');
+            const revealVerseBtn = document.getElementById('revealVerseBtn');
+            const insertVerseBtn = document.getElementById('insertVerseBtn');
+            const newDocBtn = document.getElementById('newDocBtn');
+            const saveNowBtn = document.getElementById('saveNowBtn');
+            const themeToggle = document.getElementById('themeToggle');
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsModal = document.getElementById('settingsModal');
+            const langSelect = document.getElementById('langSelect');
+            const fontSelect = document.getElementById('fontSelect');
+            const fontSizeInput = document.getElementById('fontSizeInput');
+            const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+            const applySettingsBtn = document.getElementById('applySettingsBtn');
+            const toolbarButtons = document.querySelectorAll('.toolbar button[data-command]');
+            const footerText = document.getElementById('footerText');
+            const fontFamilySelect = document.getElementById('fontFamilySelect');
+            const fontSizeSelect = document.getElementById('fontSizeSelect');
+
+            let currentLang = 'en-US';
+            let currentVerse = { text: '', reference: '' };
+            let saveTimeout = null;
+            const STORAGE_CONTENT = 'tab-paper-content';
+            const STORAGE_TITLE = 'tab-paper-title';
+            const STORAGE_SETTINGS = 'tab-paper-settings';
+
+            let settings = { lang: 'en-US', font: 'Inter, system-ui, sans-serif', size: 16, dark: false };
+
+            // ─── settings ──────────────────────────
+            function loadSettings() {
+                const saved = localStorage.getItem(STORAGE_SETTINGS);
+                if (saved) { try { settings = JSON.parse(saved); } catch (e) {} }
+                applySettingsToUI();
+            }
+            function saveSettingsToStorage() { localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(settings)); }
+            function applySettingsToUI() {
+                currentLang = settings.lang;
+                langSelect.value = settings.lang;
+                updateAllTexts();
+                document.documentElement.style.setProperty('--editor-font', settings.font);
+                fontSelect.value = settings.font;
+                document.documentElement.style.setProperty('--editor-size', settings.size + 'px');
+                fontSizeInput.value = settings.size;
+                if (settings.dark) { document.body.classList.add('dark'); themeToggle.textContent = '☀️'; } 
+                else { document.body.classList.remove('dark'); themeToggle.textContent = '🌙'; }
+            }
+            function updateAllTexts() {
+                const t = translations[currentLang];
+                saveText.textContent = t.saveStatusSaved;
+                newDocBtn.textContent = t.newBtn;
+                saveNowBtn.textContent = t.saveNowBtn;
+                document.getElementById('settingsTitle').textContent = t.settingsTitle;
+                document.getElementById('langLabel').textContent = t.langLabel;
+                document.getElementById('fontLabel').textContent = t.fontLabel;
+                document.getElementById('sizeLabel').textContent = t.sizeLabel;
+                closeSettingsBtn.textContent = t.cancel;
+                applySettingsBtn.textContent = t.apply;
+                versePrompt.textContent = t.versePrompt;
+                insertVerseBtn.textContent = t.insertVerse;
+                editor.setAttribute('data-placeholder', t.placeholder);
+                docTitle.placeholder = t.untitled;
+                footerText.textContent = t.footer;
+                if (saveText.textContent.includes('saved') || saveText.textContent.includes('Saved')) markSaved();
+            }
+
+            function markUnsaved() { document.querySelector('#saveStatus .dot').style.background = '#f0ad4e'; saveText.textContent = translations[currentLang].saveStatusUnsaved; }
+            function markSaved() { document.querySelector('#saveStatus .dot').style.background = '#4caf84'; saveText.textContent = translations[currentLang].saveStatusSaved; }
+
+            function saveContent() { localStorage.setItem(STORAGE_CONTENT, editor.innerHTML); localStorage.setItem(STORAGE_TITLE, docTitle.value); markSaved(); }
+            function triggerSave() { markUnsaved(); if (saveTimeout) clearTimeout(saveTimeout); saveTimeout = setTimeout(saveContent, 800); }
+            function loadContent() { const sc = localStorage.getItem(STORAGE_CONTENT); const st = localStorage.getItem(STORAGE_TITLE); if (sc !== null) editor.innerHTML = sc; if (st !== null) docTitle.value = st; markSaved(); }
+            function newDocument() { if (editor.innerHTML.trim() !== '' || docTitle.value.trim() !== '') { if (!confirm('Start a new document? Unsaved changes will be lost.')) return; } editor.innerHTML = ''; docTitle.value = ''; saveContent(); editor.focus(); }
+
+            // ─── style application (font & size) ────
+            function applyStyleToSelection(styleProp, value) {
+                const sel = window.getSelection();
+                if (!sel.rangeCount || sel.isCollapsed) return;
+                const range = sel.getRangeAt(0);
+                const span = document.createElement('span');
+                span.style[styleProp] = value;
+                try {
+                    range.surroundContents(span);
+                } catch (e) {
+                    // fallback for complex selections
+                    const fragment = range.extractContents();
+                    span.appendChild(fragment);
+                    range.insertNode(span);
+                }
+                // re-select the new content
+                sel.removeAllRanges();
+                const newRange = document.createRange();
+                newRange.selectNodeContents(span);
+                sel.addRange(newRange);
+                triggerSave();
+                updateFontSelects();
+            }
+
+            // ─── font & size handlers ──────────────
+            fontFamilySelect.addEventListener('change', () => {
+                applyStyleToSelection('fontFamily', fontFamilySelect.value);
+            });
+            fontSizeSelect.addEventListener('change', () => {
+                applyStyleToSelection('fontSize', fontSizeSelect.value + 'px');
+            });
+
+            // ─── toolbar commands ──────────────────
+            function execCommand(command, value = null) {
+                document.execCommand(command, false, value);
+                editor.focus();
+                triggerSave();
+                updateToolbarState();
+                updateFontSelects();
+            }
+            function updateToolbarState() {
+                toolbarButtons.forEach(btn => {
+                    const cmd = btn.getAttribute('data-command');
+                    const val = btn.getAttribute('data-value');
+                    let active = false;
+                    if (cmd === 'bold') active = document.queryCommandState('bold');
+                    else if (cmd === 'italic') active = document.queryCommandState('italic');
+                    else if (cmd === 'underline') active = document.queryCommandState('underline');
+                    else if (cmd === 'formatBlock') {
+                        const cur = document.queryCommandValue('formatBlock');
+                        active = (cur && cur.toLowerCase() === val);
+                    } else if (cmd === 'insertUnorderedList') active = document.queryCommandState('insertUnorderedList');
+                    else if (cmd === 'insertOrderedList') active = document.queryCommandState('insertOrderedList');
+                    btn.classList.toggle('active', active);
+                });
+            }
+            toolbarButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    execCommand(btn.getAttribute('data-command'), btn.getAttribute('data-value') || null);
+                });
+            });
+
+            // ─── update selects to reflect current selection ────
+            function updateFontSelects() {
+                const sel = window.getSelection();
+                if (!sel.rangeCount || !editor.contains(sel.anchorNode)) {
+                    fontSizeSelect.value = settings.size;
+                    fontFamilySelect.value = settings.font;
+                    return;
+                }
+                // detect font family
+                let node = sel.anchorNode;
+                if (node.nodeType === 3) node = node.parentNode;
+                let foundFont = null;
+                while (node && node !== editor) {
+                    if (node.style && node.style.fontFamily) {
+                        foundFont = node.style.fontFamily.replace(/['"]/g, '').split(',')[0].trim();
+                        break;
+                    }
+                    node = node.parentNode;
+                }
+                if (foundFont) {
+                    for (let i = 0; i < fontFamilySelect.options.length; i++) {
+                        const optVal = fontFamilySelect.options[i].value.replace(/['"]/g, '').split(',')[0].trim();
+                        if (optVal.toLowerCase() === foundFont.toLowerCase()) {
+                            fontFamilySelect.value = fontFamilySelect.options[i].value;
+                            break;
+                        }
+                    }
+                } else {
+                    fontFamilySelect.value = settings.font;
+                }
+
+                // detect font size
+                let range = sel.getRangeAt(0);
+                let el = range.commonAncestorContainer;
+                if (el.nodeType === 3) el = el.parentNode;
+                let foundSize = null;
+                while (el && el !== editor) {
+                    if (el.style && el.style.fontSize) {
+                        foundSize = parseInt(el.style.fontSize);
+                        break;
+                    }
+                    el = el.parentNode;
+                }
+                if (foundSize) {
+                    const opts = fontSizeSelect.options;
+                    let matched = false;
+                    for (let i = 0; i < opts.length; i++) {
+                        if (parseInt(opts[i].value) === foundSize) {
+                            fontSizeSelect.value = opts[i].value;
+                            matched = true;
+                            break;
+                        }
+                    }
+                    if (!matched) fontSizeSelect.value = foundSize;
+                } else {
+                    fontSizeSelect.value = settings.size;
+                }
+            }
+
+            // ─── sync selects on cursor move ────────
+            editor.addEventListener('keyup', () => { updateToolbarState(); updateFontSelects(); });
+            editor.addEventListener('mouseup', () => { updateToolbarState(); updateFontSelects(); });
+            editor.addEventListener('click', () => { updateToolbarState(); updateFontSelects(); });
+
+            // ─── daily verse ────────────────────────
+            async function fetchDailyVerse() {
+                try {
+                    const res = await fetch('https://beta.ourmanna.com/api/v1/?format=json&order=daily');
+                    if (!res.ok) throw new Error('API failed');
+                    const data = await res.json();
+                    if (data?.verse?.details) {
+                        currentVerse = { text: data.verse.details.text, reference: data.verse.details.reference };
+                        return;
+                    }
+                    throw new Error('No verse');
+                } catch (e) {
+                    console.warn('Fallback verse');
+                    currentVerse = { text: 'For I know the plans I have for you, declares the Lord, plans for welfare and not for evil, to give you a future and a hope.', reference: 'Jeremiah 29:11' };
+                }
+            }
+            revealVerseBtn.addEventListener('click', async () => {
+                revealVerseBtn.disabled = true;
+                if (!currentVerse.text) await fetchDailyVerse();
+                verseText.textContent = `"${currentVerse.text}"`;
+                verseRef.textContent = `— ${currentVerse.reference}`;
+                versePrompt.style.display = 'none';
+                verseDisplay.classList.remove('verse-hidden');
+                revealVerseBtn.disabled = false;
+            });
+            insertVerseBtn.addEventListener('click', () => {
+                if (!currentVerse.text) { alert('Please reveal today\'s verse first.'); return; }
+                const block = document.createElement('blockquote');
+                block.textContent = `"${currentVerse.text}" — ${currentVerse.reference}`;
+                editor.focus();
+                const sel = window.getSelection();
+                if (sel.rangeCount > 0) {
+                    const range = sel.getRangeAt(0);
+                    range.deleteContents();
+                    range.insertNode(block);
+                    range.setStartAfter(block);
+                    range.collapse(true);
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                } else {
+                    editor.appendChild(block);
+                }
+                triggerSave();
+            });
+
+            // ─── settings modal ─────────────────────
+            settingsBtn.addEventListener('click', () => {
+                langSelect.value = settings.lang;
+                fontSelect.value = settings.font;
+                fontSizeInput.value = settings.size;
+                settingsModal.classList.add('active');
+            });
+            closeSettingsBtn.addEventListener('click', () => settingsModal.classList.remove('active'));
+            applySettingsBtn.addEventListener('click', () => {
+                settings.lang = langSelect.value;
+                settings.font = fontSelect.value;
+                settings.size = parseInt(fontSizeInput.value, 10) || 16;
+                saveSettingsToStorage();
+                applySettingsToUI();
+                settingsModal.classList.remove('active');
+            });
+            window.addEventListener('click', (e) => { if (e.target === settingsModal) settingsModal.classList.remove('active'); });
+            themeToggle.addEventListener('click', () => {
+                settings.dark = !settings.dark;
+                saveSettingsToStorage();
+                applySettingsToUI();
+            });
+
+            // ─── editor & title listeners ───────────
+            editor.addEventListener('input', () => { triggerSave(); updateToolbarState(); updateFontSelects(); });
+            editor.addEventListener('paste', () => setTimeout(triggerSave, 100));
+            docTitle.addEventListener('input', triggerSave);
+            saveNowBtn.addEventListener('click', () => { saveContent(); markSaved(); });
+            newDocBtn.addEventListener('click', newDocument);
+            document.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveContent(); markSaved(); } });
+            window.addEventListener('beforeunload', (e) => { if (saveText.textContent === translations[currentLang].saveStatusUnsaved) { e.preventDefault(); e.returnValue = ''; } });
+
+            // init
+            loadSettings();
+            loadContent();
+            updateToolbarState();
+            updateFontSelects();
+        })();
+    </script>
+</body>
+</html>
