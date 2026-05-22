@@ -148,6 +148,65 @@
         }
         .icon-btn:hover { background: var(--border-light); }
 
+        /* Dropdown styles */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 4px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            min-width: 180px;
+            z-index: 150;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-8px);
+            transition: all 0.2s;
+            padding: 0.5rem;
+        }
+        .dropdown-menu.active {
+            opacity: 1;
+            pointer-events: all;
+            transform: translateY(0);
+        }
+        .dropdown-menu button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: background 0.15s;
+        }
+        .dropdown-menu button:hover {
+            background: var(--border-light);
+        }
+        .dropdown-menu .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 0.3rem 0;
+        }
+        .dropdown-menu .menu-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            padding: 0.4rem 0.8rem 0.2rem;
+            font-weight: 600;
+        }
+
         .main-container {
             flex: 1;
             max-width: 880px;
@@ -250,7 +309,6 @@
             margin: 0 0.2rem;
             align-self: stretch;
         }
-        /* ─── Fixed select styles for dark mode ─── */
         .toolbar select {
             height: 32px;
             padding: 0 1.8rem 0 0.6rem;
@@ -271,14 +329,8 @@
             background-position: right 0.5rem center;
             background-size: 12px 8px;
         }
-        .toolbar select:hover {
-            border-color: var(--gold);
-            color: var(--text);
-        }
-        .toolbar select:focus {
-            border-color: var(--gold);
-            box-shadow: 0 0 0 2px rgba(201,168,76,0.15);
-        }
+        .toolbar select:hover { border-color: var(--gold); color: var(--text); }
+        .toolbar select:focus { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(201,168,76,0.15); }
 
         .editor-wrapper {
             background: var(--bg-card);
@@ -374,6 +426,30 @@
         }
         .app-footer span { color: var(--gold); font-weight: 600; }
 
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--gold);
+            border-radius: var(--radius);
+            padding: 1rem 1.5rem;
+            box-shadow: var(--shadow-lg);
+            z-index: 300;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .toast.success { border-color: #4caf84; }
+
         @media (max-width: 680px) {
             .navbar { padding: 0 1rem; height: 54px; }
             .app-title { font-size: 1.1rem; }
@@ -398,10 +474,32 @@
             </div>
             <button class="icon-btn" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
             <button class="icon-btn" id="settingsBtn" aria-label="Settings">⚙️</button>
+            <div class="dropdown">
+                <button class="btn btn-outline" id="importBtn">📥 Import</button>
+                <div class="dropdown-menu" id="importMenu">
+                    <div class="menu-label">Import File</div>
+                    <button data-import="html">🌐 HTML Document</button>
+                    <button data-import="md">📝 Markdown</button>
+                    <button data-import="txt">📄 Plain Text</button>
+                    <button data-import="tabdocs">📋 TabDocs</button>
+                </div>
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-primary" id="exportBtn">⬇ Export</button>
+                <div class="dropdown-menu" id="exportMenu">
+                    <div class="menu-label">Export As</div>
+                    <button data-export="html">🌐 HTML Document</button>
+                    <button data-export="md">📝 Markdown</button>
+                    <button data-export="txt">📄 Plain Text</button>
+                    <button data-export="tabdocs">📋 TabDocs</button>
+                </div>
+            </div>
             <button class="btn btn-outline" id="newDocBtn">+ New</button>
-            <button class="btn btn-primary" id="exportBtn">⬇ Export</button>
         </div>
     </nav>
+
+    <!-- Hidden file input for imports -->
+    <input type="file" id="fileInput" style="display: none" accept=".html,.md,.txt,.tabdocs">
 
     <!-- settings modal -->
     <div class="modal-overlay" id="settingsModal">
@@ -498,6 +596,9 @@
         </div>
     </div>
 
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
+
     <footer class="app-footer">
         <span>Tabernacle Paper</span> — <span id="footerText">A faith-focused document editor. Built with AI, guided by faith.</span>
     </footer>
@@ -505,15 +606,123 @@
     <script>
         (function() {
             const translations = {
-                'en-US': { saveStatusSaved: 'All changes saved', saveStatusUnsaved: 'Unsaved changes', newBtn: '+ New', exportBtn: '⬇ Export', settingsTitle: 'Settings', langLabel: 'Language', fontLabel: 'Default Font Family', sizeLabel: 'Default Font Size (px)', cancel: 'Cancel', apply: 'Apply', versePrompt: 'Need encouragement? Click the book icon to reveal today\'s Scripture.', insertVerse: '✝ Insert Verse', placeholder: 'Start writing your document...', untitled: 'Untitled Document', footer: 'A faith-focused document editor. Built with AI, guided by faith.' },
-                'en-GB': { saveStatusSaved: 'All changes saved', saveStatusUnsaved: 'Unsaved changes', newBtn: '+ New', exportBtn: '⬇ Export', settingsTitle: 'Settings', langLabel: 'Language', fontLabel: 'Default Font Family', sizeLabel: 'Default Font Size (px)', cancel: 'Cancel', apply: 'Apply', versePrompt: 'Need encouragement? Click the book icon to reveal today\'s Scripture.', insertVerse: '✝ Insert Verse', placeholder: 'Start writing your document...', untitled: 'Untitled Document', footer: 'A faith-focused document editor. Built with AI, guided by faith.' },
-                'en-AU': { saveStatusSaved: 'All changes saved', saveStatusUnsaved: 'Unsaved changes', newBtn: '+ New', exportBtn: '⬇ Export', settingsTitle: 'Settings', langLabel: 'Language', fontLabel: 'Default Font Family', sizeLabel: 'Default Font Size (px)', cancel: 'Cancel', apply: 'Apply', versePrompt: 'Need a pick-me-up? Click the book icon to see today\'s Scripture.', insertVerse: '✝ Insert Verse', placeholder: 'Start writing your document...', untitled: 'Untitled Document', footer: 'A faith-focused document editor. Built with AI, guided by faith.' },
-                'sv': { saveStatusSaved: 'Alla ändringar sparade', saveStatusUnsaved: 'Osparade ändringar', newBtn: '+ Ny', exportBtn: '⬇ Exportera', settingsTitle: 'Inställningar', langLabel: 'Språk', fontLabel: 'Standardtypsnitt', sizeLabel: 'Standard teckenstorlek (px)', cancel: 'Avbryt', apply: 'Verkställ', versePrompt: 'Behöver du uppmuntran? Klicka på bokikonen för att visa dagens bibelord.', insertVerse: '✝ Infoga vers', placeholder: 'Börja skriva ditt dokument...', untitled: 'Namnlöst dokument', footer: 'En trosfokuserad dokumentredigerare. Byggd med AI, ledd av tro.' },
-                'fi': { saveStatusSaved: 'Kaikki muutokset tallennettu', saveStatusUnsaved: 'Tallentamattomia muutoksia', newBtn: '+ Uusi', exportBtn: '⬇ Vie', settingsTitle: 'Asetukset', langLabel: 'Kieli', fontLabel: 'Oletusfontti', sizeLabel: 'Oletusfonttikoko (px)', cancel: 'Peruuta', apply: 'Käytä', versePrompt: 'Tarvitsetko rohkaisua? Napsauta kirjakuvaketta nähdäksesi päivän raamatunjakeen.', insertVerse: '✝ Lisää jae', placeholder: 'Aloita kirjoittaminen...', untitled: 'Nimetön asiakirja', footer: 'Uskoon keskittyvä asiakirjaeditori. Rakennettu tekoälyllä, uskon ohjaamana.' },
-                'es': { saveStatusSaved: 'Todos los cambios guardados', saveStatusUnsaved: 'Cambios sin guardar', newBtn: '+ Nuevo', exportBtn: '⬇ Exportar', settingsTitle: 'Configuración', langLabel: 'Idioma', fontLabel: 'Fuente predeterminada', sizeLabel: 'Tamaño de fuente predeterminado (px)', cancel: 'Cancelar', apply: 'Aplicar', versePrompt: '¿Necesitas ánimo? Haz clic en el ícono del libro para ver el versículo de hoy.', insertVerse: '✝ Insertar versículo', placeholder: 'Empieza a escribir tu documento...', untitled: 'Documento sin título', footer: 'Un editor de documentos centrado en la fe. Construido con IA, guiado por la fe.' },
-                'pt': { saveStatusSaved: 'Todas as alterações salvas', saveStatusUnsaved: 'Alterações não salvas', newBtn: '+ Novo', exportBtn: '⬇ Exportar', settingsTitle: 'Configurações', langLabel: 'Idioma', fontLabel: 'Fonte padrão', sizeLabel: 'Tamanho de fonte padrão (px)', cancel: 'Cancelar', apply: 'Aplicar', versePrompt: 'Precisa de encorajamento? Clique no ícone do livro para ver o versículo de hoje.', insertVerse: '✝ Inserir versículo', placeholder: 'Comece a escrever seu documento...', untitled: 'Documento sem título', footer: 'Um editor de documentos focado na fé. Construído com IA, guiado pela fé.' },
-                'zh-TW': { saveStatusSaved: '所有變更已儲存', saveStatusUnsaved: '未儲存變更', newBtn: '+ 新增', exportBtn: '⬇ 匯出', settingsTitle: '設定', langLabel: '語言', fontLabel: '預設字型', sizeLabel: '預設字型大小 (px)', cancel: '取消', apply: '套用', versePrompt: '需要鼓勵嗎？按一下書本圖示顯示今日經文。', insertVerse: '✝ 插入經文', placeholder: '開始撰寫您的文件...', untitled: '未命名文件', footer: '以信仰為中心的文件編輯器。以AI打造，由信仰引導。' },
-                'ru': { saveStatusSaved: 'Все изменения сохранены', saveStatusUnsaved: 'Несохранённые изменения', newBtn: '+ Новый', exportBtn: '⬇ Экспорт', settingsTitle: 'Настройки', langLabel: 'Язык', fontLabel: 'Шрифт по умолчанию', sizeLabel: 'Размер шрифта по умолчанию (px)', cancel: 'Отмена', apply: 'Применить', versePrompt: 'Нужно ободрение? Нажмите на иконку книги, чтобы увидеть сегодняшний стих.', insertVerse: '✝ Вставить стих', placeholder: 'Начните писать документ...', untitled: 'Безымянный документ', footer: 'Редактор документов, ориентированный на веру. Создан с ИИ, ведомый верой.' }
+                'en-US': { 
+                    saveStatusSaved: 'All changes saved', saveStatusUnsaved: 'Unsaved changes', 
+                    newBtn: '+ New', importBtn: '📥 Import', exportBtn: '⬇ Export',
+                    settingsTitle: 'Settings', langLabel: 'Language', fontLabel: 'Default Font Family', 
+                    sizeLabel: 'Default Font Size (px)', cancel: 'Cancel', apply: 'Apply', 
+                    versePrompt: 'Need encouragement? Click the book icon to reveal today\'s Scripture.', 
+                    insertVerse: '✝ Insert Verse', placeholder: 'Start writing your document...', 
+                    untitled: 'Untitled Document', 
+                    footer: 'A faith-focused document editor. Built with AI, guided by faith.',
+                    exported: 'Document exported successfully!',
+                    imported: 'Document imported successfully!',
+                    importError: 'Error importing file. Please check the format.'
+                },
+                'en-GB': { 
+                    saveStatusSaved: 'All changes saved', saveStatusUnsaved: 'Unsaved changes', 
+                    newBtn: '+ New', importBtn: '📥 Import', exportBtn: '⬇ Export',
+                    settingsTitle: 'Settings', langLabel: 'Language', fontLabel: 'Default Font Family', 
+                    sizeLabel: 'Default Font Size (px)', cancel: 'Cancel', apply: 'Apply', 
+                    versePrompt: 'Need encouragement? Click the book icon to reveal today\'s Scripture.', 
+                    insertVerse: '✝ Insert Verse', placeholder: 'Start writing your document...', 
+                    untitled: 'Untitled Document', 
+                    footer: 'A faith-focused document editor. Built with AI, guided by faith.',
+                    exported: 'Document exported successfully!',
+                    imported: 'Document imported successfully!',
+                    importError: 'Error importing file. Please check the format.'
+                },
+                'en-AU': { 
+                    saveStatusSaved: 'All changes saved', saveStatusUnsaved: 'Unsaved changes', 
+                    newBtn: '+ New', importBtn: '📥 Import', exportBtn: '⬇ Export',
+                    settingsTitle: 'Settings', langLabel: 'Language', fontLabel: 'Default Font Family', 
+                    sizeLabel: 'Default Font Size (px)', cancel: 'Cancel', apply: 'Apply', 
+                    versePrompt: 'Need a pick-me-up? Click the book icon to see today\'s Scripture.', 
+                    insertVerse: '✝ Insert Verse', placeholder: 'Start writing your document...', 
+                    untitled: 'Untitled Document', 
+                    footer: 'A faith-focused document editor. Built with AI, guided by faith.',
+                    exported: 'Document exported successfully!',
+                    imported: 'Document imported successfully!',
+                    importError: 'Error importing file. Please check the format.'
+                },
+                'sv': { 
+                    saveStatusSaved: 'Alla ändringar sparade', saveStatusUnsaved: 'Osparade ändringar', 
+                    newBtn: '+ Ny', importBtn: '📥 Importera', exportBtn: '⬇ Exportera',
+                    settingsTitle: 'Inställningar', langLabel: 'Språk', fontLabel: 'Standardtypsnitt', 
+                    sizeLabel: 'Standard teckenstorlek (px)', cancel: 'Avbryt', apply: 'Verkställ', 
+                    versePrompt: 'Behöver du uppmuntran? Klicka på bokikonen för att visa dagens bibelord.', 
+                    insertVerse: '✝ Infoga vers', placeholder: 'Börja skriva ditt dokument...', 
+                    untitled: 'Namnlöst dokument', 
+                    footer: 'En trosfokuserad dokumentredigerare. Byggd med AI, ledd av tro.',
+                    exported: 'Dokumentet exporterades!',
+                    imported: 'Dokumentet importerades!',
+                    importError: 'Fel vid import. Kontrollera formatet.'
+                },
+                'fi': { 
+                    saveStatusSaved: 'Kaikki muutokset tallennettu', saveStatusUnsaved: 'Tallentamattomia muutoksia', 
+                    newBtn: '+ Uusi', importBtn: '📥 Tuo', exportBtn: '⬇ Vie',
+                    settingsTitle: 'Asetukset', langLabel: 'Kieli', fontLabel: 'Oletusfontti', 
+                    sizeLabel: 'Oletusfonttikoko (px)', cancel: 'Peruuta', apply: 'Käytä', 
+                    versePrompt: 'Tarvitsetko rohkaisua? Napsauta kirjakuvaketta nähdäksesi päivän raamatunjakeen.', 
+                    insertVerse: '✝ Lisää jae', placeholder: 'Aloita kirjoittaminen...', 
+                    untitled: 'Nimetön asiakirja', 
+                    footer: 'Uskoon keskittyvä asiakirjaeditori. Rakennettu tekoälyllä, uskon ohjaamana.',
+                    exported: 'Asiakirja viety onnistuneesti!',
+                    imported: 'Asiakirja tuotu onnistuneesti!',
+                    importError: 'Virhe tuotaessa. Tarkista tiedostomuoto.'
+                },
+                'es': { 
+                    saveStatusSaved: 'Todos los cambios guardados', saveStatusUnsaved: 'Cambios sin guardar', 
+                    newBtn: '+ Nuevo', importBtn: '📥 Importar', exportBtn: '⬇ Exportar',
+                    settingsTitle: 'Configuración', langLabel: 'Idioma', fontLabel: 'Fuente predeterminada', 
+                    sizeLabel: 'Tamaño de fuente predeterminado (px)', cancel: 'Cancelar', apply: 'Aplicar', 
+                    versePrompt: '¿Necesitas ánimo? Haz clic en el ícono del libro para ver el versículo de hoy.', 
+                    insertVerse: '✝ Insertar versículo', placeholder: 'Empieza a escribir tu documento...', 
+                    untitled: 'Documento sin título', 
+                    footer: 'Un editor de documentos centrado en la fe. Construido con IA, guiado por la fe.',
+                    exported: '¡Documento exportado exitosamente!',
+                    imported: '¡Documento importado exitosamente!',
+                    importError: 'Error al importar. Verifica el formato.'
+                },
+                'pt': { 
+                    saveStatusSaved: 'Todas as alterações salvas', saveStatusUnsaved: 'Alterações não salvas', 
+                    newBtn: '+ Novo', importBtn: '📥 Importar', exportBtn: '⬇ Exportar',
+                    settingsTitle: 'Configurações', langLabel: 'Idioma', fontLabel: 'Fonte padrão', 
+                    sizeLabel: 'Tamanho de fonte padrão (px)', cancel: 'Cancelar', apply: 'Aplicar', 
+                    versePrompt: 'Precisa de encorajamento? Clique no ícone do livro para ver o versículo de hoje.', 
+                    insertVerse: '✝ Inserir versículo', placeholder: 'Comece a escrever seu documento...', 
+                    untitled: 'Documento sem título', 
+                    footer: 'Um editor de documentos focado na fé. Construído com IA, guiado pela fé.',
+                    exported: 'Documento exportado com sucesso!',
+                    imported: 'Documento importado com sucesso!',
+                    importError: 'Erro ao importar. Verifique o formato.'
+                },
+                'zh-TW': { 
+                    saveStatusSaved: '所有變更已儲存', saveStatusUnsaved: '未儲存變更', 
+                    newBtn: '+ 新增', importBtn: '📥 匯入', exportBtn: '⬇ 匯出',
+                    settingsTitle: '設定', langLabel: '語言', fontLabel: '預設字型', 
+                    sizeLabel: '預設字型大小 (px)', cancel: '取消', apply: '套用', 
+                    versePrompt: '需要鼓勵嗎？按一下書本圖示顯示今日經文。', 
+                    insertVerse: '✝ 插入經文', placeholder: '開始撰寫您的文件...', 
+                    untitled: '未命名文件', 
+                    footer: '以信仰為中心的文件編輯器。以AI打造，由信仰引導。',
+                    exported: '文件匯出成功！',
+                    imported: '文件匯入成功！',
+                    importError: '匯入錯誤，請檢查檔案格式。'
+                },
+                'ru': { 
+                    saveStatusSaved: 'Все изменения сохранены', saveStatusUnsaved: 'Несохранённые изменения', 
+                    newBtn: '+ Новый', importBtn: '📥 Импорт', exportBtn: '⬇ Экспорт',
+                    settingsTitle: 'Настройки', langLabel: 'Язык', fontLabel: 'Шрифт по умолчанию', 
+                    sizeLabel: 'Размер шрифта по умолчанию (px)', cancel: 'Отмена', apply: 'Применить', 
+                    versePrompt: 'Нужно ободрение? Нажмите на иконку книги, чтобы увидеть сегодняшний стих.', 
+                    insertVerse: '✝ Вставить стих', placeholder: 'Начните писать документ...', 
+                    untitled: 'Безымянный документ', 
+                    footer: 'Редактор документов, ориентированный на веру. Создан с ИИ, ведомый верой.',
+                    exported: 'Документ успешно экспортирован!',
+                    imported: 'Документ успешно импортирован!',
+                    importError: 'Ошибка импорта. Проверьте формат файла.'
+                }
             };
 
             const editor = document.getElementById('editor');
@@ -526,7 +735,12 @@
             const revealVerseBtn = document.getElementById('revealVerseBtn');
             const insertVerseBtn = document.getElementById('insertVerseBtn');
             const newDocBtn = document.getElementById('newDocBtn');
+            const importBtn = document.getElementById('importBtn');
             const exportBtn = document.getElementById('exportBtn');
+            const importMenu = document.getElementById('importMenu');
+            const exportMenu = document.getElementById('exportMenu');
+            const fileInput = document.getElementById('fileInput');
+            const toast = document.getElementById('toast');
             const themeToggle = document.getElementById('themeToggle');
             const settingsBtn = document.getElementById('settingsBtn');
             const settingsModal = document.getElementById('settingsModal');
@@ -548,6 +762,321 @@
             const STORAGE_SETTINGS = 'tab-paper-settings';
 
             let settings = { lang: 'en-US', font: 'Inter, system-ui, sans-serif', size: 16, dark: false };
+
+            // ─── Toast notification ──────────────────
+            function showToast(message, type = 'success') {
+                toast.textContent = message;
+                toast.className = `toast ${type}`;
+                setTimeout(() => toast.classList.add('show'), 10);
+                setTimeout(() => toast.classList.remove('show'), 3000);
+            }
+
+            // ─── Dropdown menus ─────────────────────
+            function closeAllDropdowns() {
+                importMenu.classList.remove('active');
+                exportMenu.classList.remove('active');
+            }
+
+            importBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                exportMenu.classList.remove('active');
+                importMenu.classList.toggle('active');
+            });
+
+            exportBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                importMenu.classList.remove('active');
+                exportMenu.classList.toggle('active');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.dropdown')) {
+                    closeAllDropdowns();
+                }
+            });
+
+            // ─── HTML to Markdown conversion ─────────
+            function htmlToMarkdown(html) {
+                let md = html;
+                
+                // Headers
+                md = md.replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n');
+                md = md.replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n');
+                md = md.replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n\n');
+                
+                // Bold and italic
+                md = md.replace(/<(strong|b)[^>]*>(.*?)<\/(strong|b)>/gi, '**$2**');
+                md = md.replace(/<(em|i)[^>]*>(.*?)<\/(em|i)>/gi, '*$2*');
+                md = md.replace(/<u[^>]*>(.*?)<\/u>/gi, '__$1__');
+                
+                // Lists
+                md = md.replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n');
+                md = md.replace(/<\/ul>/gi, '\n');
+                md = md.replace(/<ul[^>]*>/gi, '');
+                md = md.replace(/<\/ol>/gi, '\n');
+                md = md.replace(/<ol[^>]*>/gi, '');
+                
+                // Blockquotes
+                md = md.replace(/<blockquote[^>]*>(.*?)<\/blockquote>/gi, (match, content) => {
+                    return content.split('\n').map(line => `> ${line}`).join('\n') + '\n\n';
+                });
+                
+                // Paragraphs and line breaks
+                md = md.replace(/<br\s*\/?>/gi, '\n');
+                md = md.replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n\n');
+                md = md.replace(/<div[^>]*>(.*?)<\/div>/gi, '$1\n');
+                
+                // Remove remaining HTML tags
+                md = md.replace(/<[^>]*>/g, '');
+                
+                // Clean up extra whitespace
+                md = md.replace(/\n{3,}/g, '\n\n');
+                md = md.trim();
+                
+                return md;
+            }
+
+            // ─── HTML to Plain Text ─────────────────
+            function htmlToPlainText(html) {
+                let text = html;
+                text = text.replace(/<br\s*\/?>/gi, '\n');
+                text = text.replace(/<\/p>/gi, '\n\n');
+                text = text.replace(/<\/div>/gi, '\n');
+                text = text.replace(/<\/h[1-6]>/gi, '\n\n');
+                text = text.replace(/<\/li>/gi, '\n');
+                text = text.replace(/<[^>]*>/g, '');
+                text = text.replace(/&nbsp;/g, ' ');
+                text = text.replace(/&amp;/g, '&');
+                text = text.replace(/&lt;/g, '<');
+                text = text.replace(/&gt;/g, '>');
+                text = text.replace(/&quot;/g, '"');
+                text = text.replace(/\n{3,}/g, '\n\n');
+                text = text.trim();
+                return text;
+            }
+
+            // ─── Export functions ───────────────────
+            function exportDocument(format) {
+                saveContent();
+                closeAllDropdowns();
+                
+                const title = docTitle.value.trim() || translations[currentLang].untitled;
+                const content = editor.innerHTML;
+                let fileContent = '';
+                let mimeType = '';
+                let extension = '';
+                
+                switch(format) {
+                    case 'html':
+                        fileContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <style>
+        body { font-family: 'Georgia', serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.8; color: #1e1e1e; }
+        h1 { font-size: 2rem; margin: 1.5rem 0 0.5rem; }
+        h2 { font-size: 1.5rem; margin: 1.2rem 0 0.4rem; }
+        h3 { font-size: 1.25rem; margin: 1rem 0 0.3rem; }
+        p { margin: 0.6rem 0; }
+        ul, ol { padding-left: 2rem; margin: 0.6rem 0; }
+        li { margin-bottom: 0.3rem; }
+        blockquote { font-style: italic; border-left: 3px solid #c9a84c; padding-left: 1rem; color: #4a4a4a; margin: 1rem 0; }
+        .title { font-size: 2.5rem; font-weight: bold; margin-bottom: 1rem; border-bottom: 2px solid #c9a84c; padding-bottom: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div class="title">${title}</div>
+    ${content}
+    <footer style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e0e0e0; text-align: center; color: #7a7a7a; font-size: 0.8rem;">
+        Created with Tabernacle Paper
+    </footer>
+</body>
+</html>`;
+                        mimeType = 'text/html';
+                        extension = 'html';
+                        break;
+                        
+                    case 'md':
+                        fileContent = `# ${title}\n\n${htmlToMarkdown(content)}`;
+                        mimeType = 'text/markdown';
+                        extension = 'md';
+                        break;
+                        
+                    case 'txt':
+                        fileContent = `${title}\n${'='.repeat(title.length)}\n\n${htmlToPlainText(content)}`;
+                        mimeType = 'text/plain';
+                        extension = 'txt';
+                        break;
+                        
+                    case 'tabdocs':
+                        // TabDocs is a JSON-based format
+                        const tabdocsData = {
+                            version: '1.0',
+                            type: 'tabdocs',
+                            title: title,
+                            content: content,
+                            createdAt: new Date().toISOString(),
+                            metadata: {
+                                app: 'Tabernacle Paper',
+                                formatVersion: '1.0'
+                            }
+                        };
+                        fileContent = JSON.stringify(tabdocsData, null, 2);
+                        mimeType = 'application/json';
+                        extension = 'tabdocs';
+                        break;
+                }
+                
+                // Create and trigger download
+                const blob = new Blob([fileContent], { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                const downloadLink = document.createElement('a');
+                downloadLink.href = url;
+                downloadLink.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.${extension}`;
+                
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                
+                setTimeout(() => {
+                    document.body.removeChild(downloadLink);
+                    URL.revokeObjectURL(url);
+                }, 100);
+                
+                showToast(translations[currentLang].exported);
+            }
+
+            // ─── Import functions ───────────────────
+            function importDocument(format) {
+                closeAllDropdowns();
+                fileInput.setAttribute('data-format', format);
+                fileInput.click();
+            }
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const format = fileInput.getAttribute('data-format');
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    const fileContent = event.target.result;
+                    
+                    try {
+                        switch(format) {
+                            case 'html':
+                                // Extract content from HTML file
+                                const parser = new DOMParser();
+                                const doc = parser.parseFromString(fileContent, 'text/html');
+                                const bodyContent = doc.body.innerHTML;
+                                
+                                // Try to find the main content
+                                const titleDiv = doc.querySelector('.title');
+                                const contentDiv = doc.querySelector('body');
+                                
+                                if (titleDiv) {
+                                    docTitle.value = titleDiv.textContent.trim();
+                                    titleDiv.remove();
+                                }
+                                
+                                editor.innerHTML = bodyContent;
+                                break;
+                                
+                            case 'md':
+                                // Simple markdown to HTML conversion
+                                let mdHtml = fileContent;
+                                
+                                // Remove title if it's the first line
+                                const lines = mdHtml.split('\n');
+                                if (lines[0].startsWith('# ')) {
+                                    docTitle.value = lines[0].substring(2).trim();
+                                    lines.shift();
+                                    mdHtml = lines.join('\n');
+                                }
+                                
+                                // Headers
+                                mdHtml = mdHtml.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+                                mdHtml = mdHtml.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+                                mdHtml = mdHtml.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+                                
+                                // Bold and italic
+                                mdHtml = mdHtml.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                                mdHtml = mdHtml.replace(/__(.*?)__/g, '<u>$1</u>');
+                                mdHtml = mdHtml.replace(/\*(.*?)\*/g, '<em>$1</em>');
+                                
+                                // Lists
+                                mdHtml = mdHtml.replace(/^- (.*$)/gim, '<li>$1</li>');
+                                mdHtml = mdHtml.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+                                
+                                // Blockquotes
+                                mdHtml = mdHtml.replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>');
+                                
+                                // Paragraphs
+                                mdHtml = mdHtml.replace(/\n\n/g, '</p><p>');
+                                mdHtml = '<p>' + mdHtml + '</p>';
+                                mdHtml = mdHtml.replace(/<p>\s*<\/p>/g, '');
+                                
+                                editor.innerHTML = mdHtml;
+                                break;
+                                
+                            case 'txt':
+                                // Convert plain text to HTML
+                                const txtLines = fileContent.split('\n');
+                                if (txtLines.length > 1 && txtLines[1] && txtLines[1].match(/^=+$/)) {
+                                    docTitle.value = txtLines[0].trim();
+                                    txtLines.splice(0, 2); // Remove title and underline
+                                }
+                                
+                                const txtContent = txtLines.join('\n')
+                                    .split('\n\n')
+                                    .map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`)
+                                    .join('\n');
+                                
+                                editor.innerHTML = txtContent;
+                                break;
+                                
+                            case 'tabdocs':
+                                // Parse TabDocs JSON format
+                                const tabdocsData = JSON.parse(fileContent);
+                                
+                                if (tabdocsData.type !== 'tabdocs') {
+                                    throw new Error('Invalid TabDocs format');
+                                }
+                                
+                                docTitle.value = tabdocsData.title || '';
+                                editor.innerHTML = tabdocsData.content || '';
+                                break;
+                        }
+                        
+                        saveContent();
+                        showToast(translations[currentLang].imported);
+                        editor.focus();
+                    } catch (error) {
+                        console.error('Import error:', error);
+                        showToast(translations[currentLang].importError, 'error');
+                    }
+                };
+                
+                reader.readAsText(file);
+                fileInput.value = ''; // Reset file input
+            });
+
+            // ─── Export/Import menu handlers ─────────
+            exportMenu.querySelectorAll('button[data-export]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    exportDocument(btn.getAttribute('data-export'));
+                });
+            });
+
+            importMenu.querySelectorAll('button[data-import]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    importDocument(btn.getAttribute('data-import'));
+                });
+            });
 
             // ─── settings ──────────────────────────
             function loadSettings() {
@@ -571,6 +1100,7 @@
                 const t = translations[currentLang];
                 saveText.textContent = t.saveStatusSaved;
                 newDocBtn.textContent = t.newBtn;
+                importBtn.textContent = t.importBtn;
                 exportBtn.textContent = t.exportBtn;
                 document.getElementById('settingsTitle').textContent = t.settingsTitle;
                 document.getElementById('langLabel').textContent = t.langLabel;
@@ -604,62 +1134,6 @@
             function loadContent() { const sc = localStorage.getItem(STORAGE_CONTENT); const st = localStorage.getItem(STORAGE_TITLE); if (sc !== null) editor.innerHTML = sc; if (st !== null) docTitle.value = st; markSaved(); }
             function newDocument() { if (editor.innerHTML.trim() !== '' || docTitle.value.trim() !== '') { if (!confirm('Start a new document? Unsaved changes will be lost.')) return; } editor.innerHTML = ''; docTitle.value = ''; saveContent(); editor.focus(); }
 
-            // ─── EXPORT FUNCTION (replaces Save Now) ────
-            function exportDocument() {
-                // First save to localStorage
-                saveContent();
-                
-                // Generate HTML content
-                const title = docTitle.value.trim() || translations[currentLang].untitled;
-                const content = editor.innerHTML;
-                
-                const htmlContent = `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${title}</title>
-    <style>
-        body { font-family: 'Georgia', serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.8; color: #1e1e1e; }
-        h1 { font-size: 2rem; margin: 1.5rem 0 0.5rem; }
-        h2 { font-size: 1.5rem; margin: 1.2rem 0 0.4rem; }
-        h3 { font-size: 1.25rem; margin: 1rem 0 0.3rem; }
-        p { margin: 0.6rem 0; }
-        ul, ol { padding-left: 2rem; margin: 0.6rem 0; }
-        li { margin-bottom: 0.3rem; }
-        blockquote { font-style: italic; border-left: 3px solid #c9a84c; padding-left: 1rem; color: #4a4a4a; margin: 1rem 0; }
-        .title { font-size: 2.5rem; font-weight: bold; margin-bottom: 1rem; border-bottom: 2px solid #c9a84c; padding-bottom: 0.5rem; }
-    </style>
-</head>
-<body>
-    <div class="title">${title}</div>
-    ${content}
-    <footer style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e0e0e0; text-align: center; color: #7a7a7a; font-size: 0.8rem;">
-        Created with Tabernacle Paper
-    </footer>
-</body>
-</html>`;
-
-                // Create and trigger download
-                const blob = new Blob([htmlContent], { type: 'text/html' });
-                const url = URL.createObjectURL(blob);
-                const downloadLink = document.createElement('a');
-                downloadLink.href = url;
-                downloadLink.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.html`;
-                
-                // Use a more reliable method for Brave
-                document.body.appendChild(downloadLink);
-                downloadLink.click();
-                
-                // Cleanup
-                setTimeout(() => {
-                    document.body.removeChild(downloadLink);
-                    URL.revokeObjectURL(url);
-                }, 100);
-                
-                markSaved();
-            }
-
             // ─── style application (font & size) ────
             function applyStyleToSelection(styleProp, value) {
                 const sel = window.getSelection();
@@ -670,12 +1144,10 @@
                 try {
                     range.surroundContents(span);
                 } catch (e) {
-                    // fallback for complex selections
                     const fragment = range.extractContents();
                     span.appendChild(fragment);
                     range.insertNode(span);
                 }
-                // re-select the new content
                 sel.removeAllRanges();
                 const newRange = document.createRange();
                 newRange.selectNodeContents(span);
@@ -731,7 +1203,6 @@
                     fontFamilySelect.value = settings.font;
                     return;
                 }
-                // detect font family
                 let node = sel.anchorNode;
                 if (node.nodeType === 3) node = node.parentNode;
                 let foundFont = null;
@@ -754,7 +1225,6 @@
                     fontFamilySelect.value = settings.font;
                 }
 
-                // detect font size
                 let range = sel.getRangeAt(0);
                 let el = range.commonAncestorContainer;
                 if (el.nodeType === 3) el = el.parentNode;
@@ -860,17 +1330,11 @@
             editor.addEventListener('paste', () => setTimeout(triggerSave, 100));
             docTitle.addEventListener('input', triggerSave);
             
-            // Updated export button handler
-            exportBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                exportDocument();
-            });
-            
             newDocBtn.addEventListener('click', newDocument);
             document.addEventListener('keydown', (e) => { 
                 if ((e.ctrlKey || e.metaKey) && e.key === 's') { 
                     e.preventDefault(); 
-                    exportDocument();
+                    exportDocument('html'); // Default export as HTML
                 } 
             });
             window.addEventListener('beforeunload', (e) => { 
