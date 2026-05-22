@@ -399,7 +399,7 @@
             <button class="icon-btn" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
             <button class="icon-btn" id="settingsBtn" aria-label="Settings">⚙️</button>
             <button class="btn btn-outline" id="newDocBtn">+ New</button>
-            <button class="btn btn-primary" id="saveNowBtn">Save Now</button>
+            <button class="btn btn-primary" id="exportBtn">⬇ Export</button>
         </div>
     </nav>
 
@@ -505,15 +505,15 @@
     <script>
         (function() {
             const translations = {
-                'en-US': { saveStatusSaved: 'All changes saved', saveStatusUnsaved: 'Unsaved changes', newBtn: '+ New', saveNowBtn: 'Save Now', settingsTitle: 'Settings', langLabel: 'Language', fontLabel: 'Default Font Family', sizeLabel: 'Default Font Size (px)', cancel: 'Cancel', apply: 'Apply', versePrompt: 'Need encouragement? Click the book icon to reveal today\'s Scripture.', insertVerse: '✝ Insert Verse', placeholder: 'Start writing your document...', untitled: 'Untitled Document', footer: 'A faith-focused document editor. Built with AI, guided by faith.' },
-                'en-GB': { saveStatusSaved: 'All changes saved', saveStatusUnsaved: 'Unsaved changes', newBtn: '+ New', saveNowBtn: 'Save Now', settingsTitle: 'Settings', langLabel: 'Language', fontLabel: 'Default Font Family', sizeLabel: 'Default Font Size (px)', cancel: 'Cancel', apply: 'Apply', versePrompt: 'Need encouragement? Click the book icon to reveal today\'s Scripture.', insertVerse: '✝ Insert Verse', placeholder: 'Start writing your document...', untitled: 'Untitled Document', footer: 'A faith-focused document editor. Built with AI, guided by faith.' },
-                'en-AU': { saveStatusSaved: 'All changes saved', saveStatusUnsaved: 'Unsaved changes', newBtn: '+ New', saveNowBtn: 'Save Now', settingsTitle: 'Settings', langLabel: 'Language', fontLabel: 'Default Font Family', sizeLabel: 'Default Font Size (px)', cancel: 'Cancel', apply: 'Apply', versePrompt: 'Need a pick-me-up? Click the book icon to see today\'s Scripture.', insertVerse: '✝ Insert Verse', placeholder: 'Start writing your document...', untitled: 'Untitled Document', footer: 'A faith-focused document editor. Built with AI, guided by faith.' },
-                'sv': { saveStatusSaved: 'Alla ändringar sparade', saveStatusUnsaved: 'Osparade ändringar', newBtn: '+ Ny', saveNowBtn: 'Spara nu', settingsTitle: 'Inställningar', langLabel: 'Språk', fontLabel: 'Standardtypsnitt', sizeLabel: 'Standard teckenstorlek (px)', cancel: 'Avbryt', apply: 'Verkställ', versePrompt: 'Behöver du uppmuntran? Klicka på bokikonen för att visa dagens bibelord.', insertVerse: '✝ Infoga vers', placeholder: 'Börja skriva ditt dokument...', untitled: 'Namnlöst dokument', footer: 'En trosfokuserad dokumentredigerare. Byggd med AI, ledd av tro.' },
-                'fi': { saveStatusSaved: 'Kaikki muutokset tallennettu', saveStatusUnsaved: 'Tallentamattomia muutoksia', newBtn: '+ Uusi', saveNowBtn: 'Tallenna nyt', settingsTitle: 'Asetukset', langLabel: 'Kieli', fontLabel: 'Oletusfontti', sizeLabel: 'Oletusfonttikoko (px)', cancel: 'Peruuta', apply: 'Käytä', versePrompt: 'Tarvitsetko rohkaisua? Napsauta kirjakuvaketta nähdäksesi päivän raamatunjakeen.', insertVerse: '✝ Lisää jae', placeholder: 'Aloita kirjoittaminen...', untitled: 'Nimetön asiakirja', footer: 'Uskoon keskittyvä asiakirjaeditori. Rakennettu tekoälyllä, uskon ohjaamana.' },
-                'es': { saveStatusSaved: 'Todos los cambios guardados', saveStatusUnsaved: 'Cambios sin guardar', newBtn: '+ Nuevo', saveNowBtn: 'Guardar ahora', settingsTitle: 'Configuración', langLabel: 'Idioma', fontLabel: 'Fuente predeterminada', sizeLabel: 'Tamaño de fuente predeterminado (px)', cancel: 'Cancelar', apply: 'Aplicar', versePrompt: '¿Necesitas ánimo? Haz clic en el ícono del libro para ver el versículo de hoy.', insertVerse: '✝ Insertar versículo', placeholder: 'Empieza a escribir tu documento...', untitled: 'Documento sin título', footer: 'Un editor de documentos centrado en la fe. Construido con IA, guiado por la fe.' },
-                'pt': { saveStatusSaved: 'Todas as alterações salvas', saveStatusUnsaved: 'Alterações não salvas', newBtn: '+ Novo', saveNowBtn: 'Salvar agora', settingsTitle: 'Configurações', langLabel: 'Idioma', fontLabel: 'Fonte padrão', sizeLabel: 'Tamanho de fonte padrão (px)', cancel: 'Cancelar', apply: 'Aplicar', versePrompt: 'Precisa de encorajamento? Clique no ícone do livro para ver o versículo de hoje.', insertVerse: '✝ Inserir versículo', placeholder: 'Comece a escrever seu documento...', untitled: 'Documento sem título', footer: 'Um editor de documentos focado na fé. Construído com IA, guiado pela fé.' },
-                'zh-TW': { saveStatusSaved: '所有變更已儲存', saveStatusUnsaved: '未儲存變更', newBtn: '+ 新增', saveNowBtn: '立即儲存', settingsTitle: '設定', langLabel: '語言', fontLabel: '預設字型', sizeLabel: '預設字型大小 (px)', cancel: '取消', apply: '套用', versePrompt: '需要鼓勵嗎？按一下書本圖示顯示今日經文。', insertVerse: '✝ 插入經文', placeholder: '開始撰寫您的文件...', untitled: '未命名文件', footer: '以信仰為中心的文件編輯器。以AI打造，由信仰引導。' },
-                'ru': { saveStatusSaved: 'Все изменения сохранены', saveStatusUnsaved: 'Несохранённые изменения', newBtn: '+ Новый', saveNowBtn: 'Сохранить сейчас', settingsTitle: 'Настройки', langLabel: 'Язык', fontLabel: 'Шрифт по умолчанию', sizeLabel: 'Размер шрифта по умолчанию (px)', cancel: 'Отмена', apply: 'Применить', versePrompt: 'Нужно ободрение? Нажмите на иконку книги, чтобы увидеть сегодняшний стих.', insertVerse: '✝ Вставить стих', placeholder: 'Начните писать документ...', untitled: 'Безымянный документ', footer: 'Редактор документов, ориентированный на веру. Создан с ИИ, ведомый верой.' }
+                'en-US': { saveStatusSaved: 'All changes saved', saveStatusUnsaved: 'Unsaved changes', newBtn: '+ New', exportBtn: '⬇ Export', settingsTitle: 'Settings', langLabel: 'Language', fontLabel: 'Default Font Family', sizeLabel: 'Default Font Size (px)', cancel: 'Cancel', apply: 'Apply', versePrompt: 'Need encouragement? Click the book icon to reveal today\'s Scripture.', insertVerse: '✝ Insert Verse', placeholder: 'Start writing your document...', untitled: 'Untitled Document', footer: 'A faith-focused document editor. Built with AI, guided by faith.' },
+                'en-GB': { saveStatusSaved: 'All changes saved', saveStatusUnsaved: 'Unsaved changes', newBtn: '+ New', exportBtn: '⬇ Export', settingsTitle: 'Settings', langLabel: 'Language', fontLabel: 'Default Font Family', sizeLabel: 'Default Font Size (px)', cancel: 'Cancel', apply: 'Apply', versePrompt: 'Need encouragement? Click the book icon to reveal today\'s Scripture.', insertVerse: '✝ Insert Verse', placeholder: 'Start writing your document...', untitled: 'Untitled Document', footer: 'A faith-focused document editor. Built with AI, guided by faith.' },
+                'en-AU': { saveStatusSaved: 'All changes saved', saveStatusUnsaved: 'Unsaved changes', newBtn: '+ New', exportBtn: '⬇ Export', settingsTitle: 'Settings', langLabel: 'Language', fontLabel: 'Default Font Family', sizeLabel: 'Default Font Size (px)', cancel: 'Cancel', apply: 'Apply', versePrompt: 'Need a pick-me-up? Click the book icon to see today\'s Scripture.', insertVerse: '✝ Insert Verse', placeholder: 'Start writing your document...', untitled: 'Untitled Document', footer: 'A faith-focused document editor. Built with AI, guided by faith.' },
+                'sv': { saveStatusSaved: 'Alla ändringar sparade', saveStatusUnsaved: 'Osparade ändringar', newBtn: '+ Ny', exportBtn: '⬇ Exportera', settingsTitle: 'Inställningar', langLabel: 'Språk', fontLabel: 'Standardtypsnitt', sizeLabel: 'Standard teckenstorlek (px)', cancel: 'Avbryt', apply: 'Verkställ', versePrompt: 'Behöver du uppmuntran? Klicka på bokikonen för att visa dagens bibelord.', insertVerse: '✝ Infoga vers', placeholder: 'Börja skriva ditt dokument...', untitled: 'Namnlöst dokument', footer: 'En trosfokuserad dokumentredigerare. Byggd med AI, ledd av tro.' },
+                'fi': { saveStatusSaved: 'Kaikki muutokset tallennettu', saveStatusUnsaved: 'Tallentamattomia muutoksia', newBtn: '+ Uusi', exportBtn: '⬇ Vie', settingsTitle: 'Asetukset', langLabel: 'Kieli', fontLabel: 'Oletusfontti', sizeLabel: 'Oletusfonttikoko (px)', cancel: 'Peruuta', apply: 'Käytä', versePrompt: 'Tarvitsetko rohkaisua? Napsauta kirjakuvaketta nähdäksesi päivän raamatunjakeen.', insertVerse: '✝ Lisää jae', placeholder: 'Aloita kirjoittaminen...', untitled: 'Nimetön asiakirja', footer: 'Uskoon keskittyvä asiakirjaeditori. Rakennettu tekoälyllä, uskon ohjaamana.' },
+                'es': { saveStatusSaved: 'Todos los cambios guardados', saveStatusUnsaved: 'Cambios sin guardar', newBtn: '+ Nuevo', exportBtn: '⬇ Exportar', settingsTitle: 'Configuración', langLabel: 'Idioma', fontLabel: 'Fuente predeterminada', sizeLabel: 'Tamaño de fuente predeterminado (px)', cancel: 'Cancelar', apply: 'Aplicar', versePrompt: '¿Necesitas ánimo? Haz clic en el ícono del libro para ver el versículo de hoy.', insertVerse: '✝ Insertar versículo', placeholder: 'Empieza a escribir tu documento...', untitled: 'Documento sin título', footer: 'Un editor de documentos centrado en la fe. Construido con IA, guiado por la fe.' },
+                'pt': { saveStatusSaved: 'Todas as alterações salvas', saveStatusUnsaved: 'Alterações não salvas', newBtn: '+ Novo', exportBtn: '⬇ Exportar', settingsTitle: 'Configurações', langLabel: 'Idioma', fontLabel: 'Fonte padrão', sizeLabel: 'Tamanho de fonte padrão (px)', cancel: 'Cancelar', apply: 'Aplicar', versePrompt: 'Precisa de encorajamento? Clique no ícone do livro para ver o versículo de hoje.', insertVerse: '✝ Inserir versículo', placeholder: 'Comece a escrever seu documento...', untitled: 'Documento sem título', footer: 'Um editor de documentos focado na fé. Construído com IA, guiado pela fé.' },
+                'zh-TW': { saveStatusSaved: '所有變更已儲存', saveStatusUnsaved: '未儲存變更', newBtn: '+ 新增', exportBtn: '⬇ 匯出', settingsTitle: '設定', langLabel: '語言', fontLabel: '預設字型', sizeLabel: '預設字型大小 (px)', cancel: '取消', apply: '套用', versePrompt: '需要鼓勵嗎？按一下書本圖示顯示今日經文。', insertVerse: '✝ 插入經文', placeholder: '開始撰寫您的文件...', untitled: '未命名文件', footer: '以信仰為中心的文件編輯器。以AI打造，由信仰引導。' },
+                'ru': { saveStatusSaved: 'Все изменения сохранены', saveStatusUnsaved: 'Несохранённые изменения', newBtn: '+ Новый', exportBtn: '⬇ Экспорт', settingsTitle: 'Настройки', langLabel: 'Язык', fontLabel: 'Шрифт по умолчанию', sizeLabel: 'Размер шрифта по умолчанию (px)', cancel: 'Отмена', apply: 'Применить', versePrompt: 'Нужно ободрение? Нажмите на иконку книги, чтобы увидеть сегодняшний стих.', insertVerse: '✝ Вставить стих', placeholder: 'Начните писать документ...', untitled: 'Безымянный документ', footer: 'Редактор документов, ориентированный на веру. Создан с ИИ, ведомый верой.' }
             };
 
             const editor = document.getElementById('editor');
@@ -526,7 +526,7 @@
             const revealVerseBtn = document.getElementById('revealVerseBtn');
             const insertVerseBtn = document.getElementById('insertVerseBtn');
             const newDocBtn = document.getElementById('newDocBtn');
-            const saveNowBtn = document.getElementById('saveNowBtn');
+            const exportBtn = document.getElementById('exportBtn');
             const themeToggle = document.getElementById('themeToggle');
             const settingsBtn = document.getElementById('settingsBtn');
             const settingsModal = document.getElementById('settingsModal');
@@ -571,7 +571,7 @@
                 const t = translations[currentLang];
                 saveText.textContent = t.saveStatusSaved;
                 newDocBtn.textContent = t.newBtn;
-                saveNowBtn.textContent = t.saveNowBtn;
+                exportBtn.textContent = t.exportBtn;
                 document.getElementById('settingsTitle').textContent = t.settingsTitle;
                 document.getElementById('langLabel').textContent = t.langLabel;
                 document.getElementById('fontLabel').textContent = t.fontLabel;
@@ -589,10 +589,76 @@
             function markUnsaved() { document.querySelector('#saveStatus .dot').style.background = '#f0ad4e'; saveText.textContent = translations[currentLang].saveStatusUnsaved; }
             function markSaved() { document.querySelector('#saveStatus .dot').style.background = '#4caf84'; saveText.textContent = translations[currentLang].saveStatusSaved; }
 
-            function saveContent() { localStorage.setItem(STORAGE_CONTENT, editor.innerHTML); localStorage.setItem(STORAGE_TITLE, docTitle.value); markSaved(); }
+            function saveContent() { 
+                try {
+                    localStorage.setItem(STORAGE_CONTENT, editor.innerHTML); 
+                    localStorage.setItem(STORAGE_TITLE, docTitle.value); 
+                    markSaved(); 
+                    return true;
+                } catch (e) {
+                    console.error('Save failed:', e);
+                    return false;
+                }
+            }
             function triggerSave() { markUnsaved(); if (saveTimeout) clearTimeout(saveTimeout); saveTimeout = setTimeout(saveContent, 800); }
             function loadContent() { const sc = localStorage.getItem(STORAGE_CONTENT); const st = localStorage.getItem(STORAGE_TITLE); if (sc !== null) editor.innerHTML = sc; if (st !== null) docTitle.value = st; markSaved(); }
             function newDocument() { if (editor.innerHTML.trim() !== '' || docTitle.value.trim() !== '') { if (!confirm('Start a new document? Unsaved changes will be lost.')) return; } editor.innerHTML = ''; docTitle.value = ''; saveContent(); editor.focus(); }
+
+            // ─── EXPORT FUNCTION (replaces Save Now) ────
+            function exportDocument() {
+                // First save to localStorage
+                saveContent();
+                
+                // Generate HTML content
+                const title = docTitle.value.trim() || translations[currentLang].untitled;
+                const content = editor.innerHTML;
+                
+                const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <style>
+        body { font-family: 'Georgia', serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.8; color: #1e1e1e; }
+        h1 { font-size: 2rem; margin: 1.5rem 0 0.5rem; }
+        h2 { font-size: 1.5rem; margin: 1.2rem 0 0.4rem; }
+        h3 { font-size: 1.25rem; margin: 1rem 0 0.3rem; }
+        p { margin: 0.6rem 0; }
+        ul, ol { padding-left: 2rem; margin: 0.6rem 0; }
+        li { margin-bottom: 0.3rem; }
+        blockquote { font-style: italic; border-left: 3px solid #c9a84c; padding-left: 1rem; color: #4a4a4a; margin: 1rem 0; }
+        .title { font-size: 2.5rem; font-weight: bold; margin-bottom: 1rem; border-bottom: 2px solid #c9a84c; padding-bottom: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div class="title">${title}</div>
+    ${content}
+    <footer style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e0e0e0; text-align: center; color: #7a7a7a; font-size: 0.8rem;">
+        Created with Tabernacle Paper
+    </footer>
+</body>
+</html>`;
+
+                // Create and trigger download
+                const blob = new Blob([htmlContent], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                const downloadLink = document.createElement('a');
+                downloadLink.href = url;
+                downloadLink.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.html`;
+                
+                // Use a more reliable method for Brave
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                
+                // Cleanup
+                setTimeout(() => {
+                    document.body.removeChild(downloadLink);
+                    URL.revokeObjectURL(url);
+                }, 100);
+                
+                markSaved();
+            }
 
             // ─── style application (font & size) ────
             function applyStyleToSelection(styleProp, value) {
@@ -793,10 +859,26 @@
             editor.addEventListener('input', () => { triggerSave(); updateToolbarState(); updateFontSelects(); });
             editor.addEventListener('paste', () => setTimeout(triggerSave, 100));
             docTitle.addEventListener('input', triggerSave);
-            saveNowBtn.addEventListener('click', () => { saveContent(); markSaved(); });
+            
+            // Updated export button handler
+            exportBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                exportDocument();
+            });
+            
             newDocBtn.addEventListener('click', newDocument);
-            document.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveContent(); markSaved(); } });
-            window.addEventListener('beforeunload', (e) => { if (saveText.textContent === translations[currentLang].saveStatusUnsaved) { e.preventDefault(); e.returnValue = ''; } });
+            document.addEventListener('keydown', (e) => { 
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') { 
+                    e.preventDefault(); 
+                    exportDocument();
+                } 
+            });
+            window.addEventListener('beforeunload', (e) => { 
+                if (saveText.textContent === translations[currentLang].saveStatusUnsaved) { 
+                    e.preventDefault(); 
+                    e.returnValue = ''; 
+                } 
+            });
 
             // init
             loadSettings();
